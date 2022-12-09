@@ -46,12 +46,16 @@ cd testdata
 unzip BasicCompanyData-part6.zip
 cd ..
 
+
+for yourfiles in `ls testdata/*.csv`; do
+
+
 ## User charfreq to find out what is in the file. Is it all extended ascii? Maybe not!
 
 echo "## use charfreq to study the whole raw file before we parse it. Could take a minute or two" 
 echo "## what can we learn?"
 
-od -cb testdata/BasicCompanyData-2021-02-01-part6_6.csv | ${runtime} -f charfreq.awk | sort -n > charfreq.rpt.txt
+#od -cb ${yourfiles} | ${runtime} -f charfreq.awk | sort -n > charfreq.rpt.txt
 
 echo ""
 echo "==============================================================================="
@@ -98,7 +102,7 @@ echo "===end of review==========================================================
 
 ## if wanted you can downsample the file - a random ~100k will be fine. Do this using "1 in N" records is easiest/effective with cap at 100k. 
 ## 
-# ${runtime} 'NR%5==0' testdata/BasicCompanyData-2021-02-01-part6_6.csv | head -100000 > testdata/downsample.csv
+# ${runtime} 'NR%5==0' ${yourfiles} | head -100000 > downsample.csv
 
 
 echo ""
@@ -110,23 +114,23 @@ echo ""
 
 # So we prepare our data into PARSED data to test things - As we want to read the data later using python, we will convert it using python.
 
-python3 parsers/csv2pipe.py testdata/BasicCompanyData-2021-02-01-part6_6.csv
+python3 parsers/csv2pipe.py ${yourfiles}
 
 # Finally we do the data profiling - to test the quality of the data, as processed by our python PARSER.
 # Do it by reading in the file and generating the profiling data.
 
 
 echo  "GENERATE HUMAN READABLE REPORT - popular eyeball inspection report"
-time ${runtime} -F"|" -f bytefreq_v1.05.awk -v header="1" -v report="1" -v grain="L" testdata/BasicCompanyData-2021-02-01-part6_6.csv.pip >out/UkCompanySample.rpt1.txt
+time ${runtime} -F"|" -f bytefreq_v1.05.awk -v header="1" -v report="1" -v grain="L" ${yourfiles}.pip >out/UkCompanySample.rpt1.txt
 
 echo  "GENERATE DATABASE LOADABLE REPORT SUMMARY OUTPUTS - for automation, used for drift in quality analysis"
-time ${runtime} -F"|" -f bytefreq_v1.05.awk -v header="1" -v report="0" -v grain="L" testdata/BasicCompanyData-2021-02-01-part6_6.csv.pip > out/UkCompanySample.rpt0.txt
+time ${runtime} -F"|" -f bytefreq_v1.05.awk -v header="1" -v report="0" -v grain="L" ${yourfiles}.pip > out/UkCompanySample.rpt0.txt
 
 echo  "#GENERATE DATABASE LOADABLE RAW+PROFILED DATA - for manual cleansing, find bad datapoints and fix them"
-time ${runtime} -F"|" -f bytefreq_v1.05.awk -v header="1" -v report="2" -v grain="L" testdata/BasicCompanyData-2021-02-01-part6_6.csv.pip > out/UkCompanySample.raw2.txt
+time ${runtime} -F"|" -f bytefreq_v1.05.awk -v header="1" -v report="2" -v grain="L" ${yourfiles}.pip > out/UkCompanySample.raw2.txt
 
 echo  "GENERATE DATABASE LOADABLE LONGFORMAT RAW DATA - for automated remediation"
-time ${runtime} -F"|" -f bytefreq_v1.05.awk -v header="1" -v report="3" -v grain="L" testdata/BasicCompanyData-2021-02-01-part6_6.csv.pip > out/UkCompanySample.raw3.txt
+time ${runtime} -F"|" -f bytefreq_v1.05.awk -v header="1" -v report="3" -v grain="L" ${yourfiles}.pip > out/UkCompanySample.raw3.txt
 
 echo "SUCCESS !"
 # Now you have all the things you need to eyeball the quality, study drift over time, find and propose fixes, to automate correcting bad data points
@@ -135,7 +139,6 @@ echo "SUCCESS !"
 # enjoy
 # Andrew
 
-
-
+done
 
 
